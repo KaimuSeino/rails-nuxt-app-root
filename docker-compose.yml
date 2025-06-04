@@ -1,0 +1,49 @@
+services:
+  # services(=containers) are defined here
+  db:
+    # Define the database service
+    image: postgres:17.5-alpine
+    # Define the environment variables for the database
+    environment:
+      # Set the timezone for the database
+      TZ: "UTC"
+      PGTZ: "UTC"
+      # Set the password for the PostgreSQL user
+      POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
+    volumes:
+      # Using host directories in containers
+      # volumes: <host-path>:<container-path>
+      - "./api/tmp/db:/var/lib/postgresql/data"
+
+  api:
+    # Define the API service
+    # Specify the base Dockerfile
+    build:
+      context: "./api"
+      args:
+        WORKDIR: "$WORKDIR"
+    environment:
+      POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
+    volumes:
+      - "./api:/$WORKDIR"
+    # Start the API service after starting the db service
+    depends_on:
+      - db
+    # Specify the public port
+    # <port-number-you-want-to-public>:<container-port>
+    ports:
+      - "$API_PORT:3000"
+
+  front:
+    build:
+      context: "./front"
+      args:
+        WORKDIR: "$WORKDIR"
+    # The command you want to run in the container
+    command: yarn run dev
+    volumes:
+      - "./front:/$WORKDIR"
+    ports:
+      - "$FRONT_PORT:3000"
+    depends_on:
+      - api
