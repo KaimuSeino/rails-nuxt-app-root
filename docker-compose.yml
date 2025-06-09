@@ -26,6 +26,7 @@ services:
     environment:
       POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
       API_DOMAIN: "localhost:$FRONT_PORT"
+    command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - "./api:/$WORKDIR"
     # Start the API service after starting the db service
@@ -42,6 +43,8 @@ services:
       args:
         WORKDIR: "$WORKDIR"
     # The command you want to run in the container
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:3000
     command: yarn run dev
     volumes:
       - "./front:/$WORKDIR"
